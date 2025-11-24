@@ -1,0 +1,46 @@
+{
+  "placeholderImages": [
+    {
+      "id": "empower-hero",
+      "description": "A diverse group of women smiling and looking healthy.",
+      "imageUrl": "https://images.unsplash.com/photo-1684789821368-6de7feaa0e75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxoYXBweSUyMHdvbWVuJTIwZGl2ZXJzZXxlbnwwfHx8fDE3NjM4MjIzOTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "happy women diverse"
+    },
+    {
+      "id": "feature-assessment",
+      "description": "A close-up of a doctor using a tablet, showing health data.",
+      "imageUrl": "https://images.unsplash.com/photo-1729949129758-0b668478dce5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2N0b3IlMjB0YWJsZXR8ZW58MHx8fHwxNzYzNzk0NzE3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor tablet"
+    },
+    {
+      "id": "feature-recommendations",
+      "description": "A woman doing yoga in a bright, airy room.",
+      "imageUrl": "https://images.unsplash.com/photo-1705999383657-c39b4d47ec2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMHlvZ2F8ZW58MHx8fHwxNzYzNzU3ODg3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman yoga"
+    },
+    {
+      "id": "feature-tracking",
+      "description": "A smartphone screen showing a health and fitness tracking app.",
+      "imageUrl": "https://images.unsplash.com/photo-1642559661058-9f518f5fa31d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGhvbmUlMjBoZWFsdGglMjBhcHB8ZW58MHx8fHwxNzYzODIyMzkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "phone health app"
+    },
+    {
+      "id": "avatar-1",
+      "description": "Avatar for Priya S.",
+      "imageUrl": "https://images.unsplash.com/photo-1739429942851-9083ee185d3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxpbmRpYW4lMjB3b21hbnxlbnwwfHx8fDE3NjM4MTM2MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "indian woman"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Avatar for Dr. Anjali M.",
+      "imageUrl": "https://images.unsplash.com/photo-1673865641073-4479f93a7776?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2N0b3IlMjB3b21hbnxlbnwwfHx8fDE3NjM3OTA0MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor woman"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Avatar for Sneha K.",
+      "imageUrl": "https://images.unsplash.com/flagged/photo-1559855603-ce4c8f480d76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzbWlsaW5nJTIwd29tYW58ZW58MHx8fHwxNzYzNzM5MjQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "smiling woman"
+    }
+  ]
+}

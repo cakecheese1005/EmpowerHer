@@ -1,0 +1,68 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && 
+             request.auth.token.role == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    function isClinician() {
+      return hasRole('clinician') || isAdmin();
+    }
+    
+    // User profile images - users can upload/read their own
+    match /users/{userId}/profile/{allPaths=**} {
+      allow read: if isOwner(userId) || isClinician();
+      allow write: if isOwner(userId) && 
+                      request.resource.size < 5 * 1024 * 1024 && // 5MB limit
+                      request.resource.contentType.matches('image/.*');
+    }
+    
+    // Assessment attachments - users can upload/read their own
+    match /users/{userId}/assessments/{assessmentId}/{allPaths=**} {
+      allow read: if isOwner(userId) || isClinician();
+      allow write: if isOwner(userId) && 
+                      request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    // Food images - users can upload/read their own
+    match /users/{userId}/food/{allPaths=**} {
+      allow read: if isOwner(userId) || isClinician();
+      allow write: if isOwner(userId) && 
+                      request.resource.size < 5 * 1024 * 1024 && // 5MB limit
+                      request.resource.contentType.matches('image/.*');
+    }
+    
+    // Article images - public read, moderator write
+    match /articles/{articleId}/{allPaths=**} {
+      allow read: if true; // Public read
+      allow write: if hasRole('moderator') && 
+                      request.resource.size < 5 * 1024 * 1024 && // 5MB limit
+                      request.resource.contentType.matches('image/.*');
+    }
+    
+    // Admin uploads - admin only
+    match /admin/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
