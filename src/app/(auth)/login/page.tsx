@@ -16,6 +16,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { signInWithGoogle } from '@/lib/auth-helpers';
+import { PhoneAuthDialog } from '@/components/phone-auth-dialog';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -24,6 +30,9 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -32,10 +41,25 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // On successful login, redirect to dashboard
-    router.push('/dashboard');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      setLoading(true);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: 'Success!',
+        description: 'You have been logged in successfully.',
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to log in. Please check your credentials.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -75,8 +99,8 @@ export default function LoginPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              Log In
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Logging in...' : 'Log In'}
             </Button>
           </form>
         </Form>
@@ -97,10 +121,45 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-4">
-          <Button variant="outline">Google</Button>
-          <Button variant="outline">Phone</Button>
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              try {
+                setLoading(true);
+                await signInWithGoogle();
+                toast({
+                  title: 'Success!',
+                  description: 'Signed in with Google successfully.',
+                });
+                router.push('/dashboard');
+              } catch (error: any) {
+                toast({
+                  title: 'Error',
+                  description: error.message || 'Failed to sign in with Google',
+                  variant: 'destructive',
+                });
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+          >
+            Google
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setPhoneDialogOpen(true)}
+            disabled={loading}
+          >
+            Phone
+          </Button>
         </div>
       </CardContent>
+      <PhoneAuthDialog
+        open={phoneDialogOpen}
+        onOpenChange={setPhoneDialogOpen}
+        onSuccess={() => router.push('/dashboard')}
+      />
     </Card>
   );
 }

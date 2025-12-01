@@ -36,13 +36,13 @@ export default function LandingPage() {
     {
       name: 'Priya S.',
       role: 'User',
-      text: 'Empower AI has been a game-changer for me. The personalized recommendations are easy to follow and have made a real difference in my life.',
+      text: 'EmpowerHer has been a game-changer for me. The personalized recommendations are easy to follow and have made a real difference in my life.',
       avatar: PlaceHolderImages.find((img) => img.id === 'avatar-1'),
     },
     {
       name: 'Dr. Anjali M.',
       role: 'Gynecologist',
-      text: "A fantastic tool for early-stage PCOS awareness. I recommend Empower AI to my patients to help them understand and manage their health proactively.",
+      text: "A fantastic tool for early-stage PCOS awareness. I recommend EmpowerHer to my patients to help them understand and manage their health proactively.",
       avatar: PlaceHolderImages.find((img) => img.id === 'avatar-2'),
     },
      {
@@ -67,7 +67,7 @@ export default function LandingPage() {
             <div className="mx-auto max-w-3xl">
               <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
                 Take Control of Your Health with{' '}
-                <span className="text-primary">Empower AI</span>
+                <span className="text-primary">EmpowerHer</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground md:text-xl">
                 Get an AI-powered PCOS risk assessment and personalized lifestyle
@@ -178,7 +178,7 @@ export default function LandingPage() {
               Ready to Start Your Journey?
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Join thousands of women who are taking control of their health with Empower AI.
+              Join thousands of women who are taking control of their health with EmpowerHer.
             </p>
             <div className="mt-8">
               <Button asChild size="lg">

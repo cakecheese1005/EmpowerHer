@@ -11,8 +11,19 @@ try {
   config = {};
 }
 
+// DEV_MODE: Use config from Firebase Functions or environment variables
+// Set to "false" to use real ML service, "true" for mock predictions
 const DEV_MODE = config.ml_service?.dev_mode === "true" || process.env.DEV_MODE === "true";
 const ML_SERVICE_URL = config.ml_service?.url || process.env.ML_SERVICE_URL || "http://localhost:8000";
+
+// Log configuration on module load
+console.log("ML Model Configuration:", {
+  devMode: DEV_MODE,
+  mlServiceUrl: ML_SERVICE_URL,
+  configDevMode: config.ml_service?.dev_mode,
+  envDevMode: process.env.DEV_MODE,
+  usingRealML: !DEV_MODE,
+});
 
 /**
  * Predict PCOS risk using the ML model service
@@ -21,41 +32,61 @@ const ML_SERVICE_URL = config.ml_service?.url || process.env.ML_SERVICE_URL || "
 export async function predictPCOSRisk(
   input: AssessmentInput
 ): Promise<PredictionResult> {
+  console.log("predictPCOSRisk called, DEV_MODE:", DEV_MODE);
+  
   if (DEV_MODE) {
+    console.log("Using mock prediction (DEV_MODE enabled)");
     // Deterministic mock response for development
     return getMockPrediction(input);
   }
 
   // Production path: Call the ML microservice
   try {
+    console.log(`Calling ML service at: ${ML_SERVICE_URL}/predict`);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout (faster fail)
+    
     const response = await fetch(`${ML_SERVICE_URL}/predict`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(input),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`ML service HTTP error: ${response.status} - ${errorText}`);
       throw new Error(`ML service error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
+    console.log("ML service response received successfully");
     
     // Validate and transform the response
     return {
       label: result.label as "No Risk" | "Early" | "High",
       probabilities: {
-        NoRisk: result.probabilities.NoRisk || 0,
-        Early: result.probabilities.Early || 0,
-        High: result.probabilities.High || 0,
+        NoRisk: result.probabilities?.NoRisk || result.probabilities?.noRisk || 0,
+        Early: result.probabilities?.Early || result.probabilities?.early || 0,
+        High: result.probabilities?.High || result.probabilities?.high || 0,
       },
-      topContributors: result.topContributors || [],
+      topContributors: result.topContributors || result.top_contributors || [],
     };
   } catch (error: any) {
+    // Log the error and fallback to mock
+    console.error("ML service error, falling back to mock:", {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      mlServiceUrl: ML_SERVICE_URL,
+    });
+    
     // Fallback to mock if service is unavailable
-    console.error("ML service error, falling back to mock:", error.message);
     return getMockPrediction(input);
   }
 }

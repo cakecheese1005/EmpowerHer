@@ -6,7 +6,7 @@ export function Logo({ className, textClassName }: { className?: string; textCla
     <div className={cn('flex items-center gap-2', className)}>
       <HeartPulse className="size-8 text-primary" />
       <span className={cn('text-xl font-bold', textClassName)}>
-        Empower<span className="text-accent">AI</span>
+        Empower<span className="text-accent">Her</span>
       </span>
     </div>
   );

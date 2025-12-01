@@ -78,3 +78,8 @@ secrets/
 # OS
 .DS_Store
 Thumbs.db
+
+# ML Models (large binary files - use Git LFS if needed)
+*.pkl
+ml_f/models/*.pkl
+ml-service/models/*.pkl

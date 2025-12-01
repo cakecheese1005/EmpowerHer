@@ -14,17 +14,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Copy model files (or download from Storage at runtime)
-# Option 1: Copy from local (if models are in repo)
-# COPY ../ml_f/models /app/models
+# Copy model files into the container
+COPY models /app/models
 
-# Option 2: Download from Firebase Storage at startup
-# Add a startup script that downloads models
+# Set default model directory
+ENV MODEL_DIR=/app/models
 
-# Expose port
-EXPOSE 8000
+# Expose port (Cloud Run uses PORT env var, but we expose 8080 as default)
+EXPOSE 8080
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use PORT env var for Cloud Run compatibility (defaults to 8080)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
 
 

@@ -1,5 +1,5 @@
 import {RateLimiterMemory} from "rate-limiter-flexible";
-import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 
 // Per-user rate limiter: 10 requests per hour
 export const userRateLimiter = new RateLimiterMemory({
@@ -21,14 +21,20 @@ export async function checkRateLimit(
     try {
       await userRateLimiter.consume(userId);
     } catch (rejRes) {
-      throw new Error("Rate limit exceeded. Please try again later.");
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Rate limit exceeded. Please try again later."
+      );
     }
   }
 
   try {
     await ipRateLimiter.consume(ip);
   } catch (rejRes) {
-    throw new Error("Rate limit exceeded. Please try again later.");
+    throw new functions.https.HttpsError(
+      "resource-exhausted",
+      "Rate limit exceeded. Please try again later."
+    );
   }
 }
 

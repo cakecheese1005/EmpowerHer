@@ -27,7 +27,34 @@ app.add_middleware(
 )
 
 # Load models
-MODEL_DIR = os.getenv("MODEL_DIR", "../ml_f/models")
+# Try multiple paths: environment variable, container path, local dev path
+def get_model_dir():
+    """Get the model directory path, trying multiple locations"""
+    # 1. Check environment variable first
+    if os.getenv("MODEL_DIR"):
+        env_path = os.getenv("MODEL_DIR")
+        if os.path.exists(env_path):
+            return env_path
+    
+    # 2. Check if models are in ml-service/models (for local testing) - PRIORITY
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    local_models = os.path.join(script_dir, "models")
+    if os.path.exists(local_models) and os.path.exists(os.path.join(local_models, "basic_pcos_model.pkl")):
+        return local_models
+    
+    # 3. Check if we're in a container (/app/models)
+    if os.path.exists("/app/models") and os.path.exists("/app/models/basic_pcos_model.pkl"):
+        return "/app/models"
+    
+    # 4. Check local development path (fallback)
+    if os.path.exists("../ml_f/models") and os.path.exists("../ml_f/models/basic_pcos_model.pkl"):
+        return "../ml_f/models"
+    
+    # 5. Default fallback
+    return "/app/models"
+
+MODEL_DIR = get_model_dir()
+logger.info(f"Using MODEL_DIR: {MODEL_DIR}")
 model = None
 imputer = None
 feature_names = None
@@ -344,5 +371,7 @@ async def predict(input_data: AssessmentInput):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Use PORT environment variable (Cloud Run provides this) or default to 8000 for local
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
