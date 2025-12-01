@@ -1,4 +1,4 @@
-# **App Name**: Empower AI
+# **App Name**: EmpowerHer
 
 ## Core Features:
 

@@ -9,8 +9,11 @@ import {
   User,
 } from "lucide-react"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
+import { signOut } from "firebase/auth"
+import { auth } from "@/lib/firebase"
+import { useAuth } from "@/contexts/AuthContext"
 
 import {
   Sidebar,
@@ -57,6 +60,21 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
+  const userName = user?.displayName || user?.email?.split('@')[0] || 'User'
+  const userEmail = user?.email || 'user@email.com'
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
   return (
     <Sidebar variant="inset" collapsible="icon" side="left">
@@ -87,18 +105,21 @@ export function AppSidebar() {
         <div className="flex items-center justify-between gap-2 p-2">
             <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://picsum.photos/seed/user-avatar/100/100" alt="User" />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarImage src={user?.photoURL || undefined} alt={userName} />
+                    <AvatarFallback>{userInitials}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
-                    <span className="font-semibold text-sidebar-foreground">User Name</span>
-                    <span className="text-muted-foreground">user@email.com</span>
+                    <span className="font-semibold text-sidebar-foreground">{userName}</span>
+                    <span className="text-muted-foreground">{userEmail}</span>
                 </div>
             </div>
-            <Button asChild variant="ghost" size="icon" className="text-sidebar-foreground group-data-[collapsible=icon]:w-full">
-                <Link href="/">
-                    <LogOut />
-                </Link>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-sidebar-foreground group-data-[collapsible=icon]:w-full"
+              onClick={handleLogout}
+            >
+                <LogOut />
             </Button>
         </div>
       </SidebarFooter>

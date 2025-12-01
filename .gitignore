@@ -39,7 +39,47 @@ next-env.d.ts
 
 .genkit/*
 .env*
+!.env.example
 
 # firebase
 firebase-debug.log
 firestore-debug.log
+.firebase/
+firebase-debug.*.log
+
+# functions
+functions/lib/
+functions/node_modules/
+functions/.env
+
+# mobile
+mobile/.expo/
+mobile/dist/
+mobile/node_modules/
+mobile/.env
+
+# web-admin
+web-admin/dist/
+web-admin/node_modules/
+web-admin/.env
+
+# secrets
+serviceAccountKey.json
+*-key.json
+*.pem
+secrets/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ML Models (large binary files - use Git LFS if needed)
+*.pkl
+ml_f/models/*.pkl
+ml-service/models/*.pkl

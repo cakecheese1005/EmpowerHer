@@ -1,0 +1,111 @@
+{
+  "info": {
+    "name": "EmpowerHer API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/health",
+          "protocol": "https",
+          "host": ["us-central1-YOUR_PROJECT_ID", "cloudfunctions", "net"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Predict PCOS Risk",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"age\": 28,\n  \"weight\": 65,\n  \"height\": 165,\n  \"cycleRegularity\": \"irregular\",\n  \"exerciseFrequency\": \"1-2_week\",\n  \"diet\": \"balanced\"\n}"
+        },
+        "url": {
+          "raw": "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/predict",
+          "protocol": "https",
+          "host": ["us-central1-YOUR_PROJECT_ID", "cloudfunctions", "net"],
+          "path": ["predict"]
+        },
+        "description": "Requires Firebase Auth token in Authorization header"
+      }
+    },
+    {
+      "name": "Export User Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"USER_ID\"\n}"
+        },
+        "url": {
+          "raw": "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/exportUser",
+          "protocol": "https",
+          "host": ["us-central1-YOUR_PROJECT_ID", "cloudfunctions", "net"],
+          "path": ["exportUser"]
+        }
+      }
+    },
+    {
+      "name": "Delete User Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"USER_ID\",\n  \"confirm\": true\n}"
+        },
+        "url": {
+          "raw": "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/deleteUser",
+          "protocol": "https",
+          "host": ["us-central1-YOUR_PROJECT_ID", "cloudfunctions", "net"],
+          "path": ["deleteUser"]
+        }
+      }
+    },
+    {
+      "name": "Classify Food",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"imageUrl\": \"gs://bucket/path/to/image.jpg\"\n}"
+        },
+        "url": {
+          "raw": "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/foodClassify",
+          "protocol": "https",
+          "host": ["us-central1-YOUR_PROJECT_ID", "cloudfunctions", "net"],
+          "path": ["foodClassify"]
+        }
+      }
+    }
+  ]
+}
+

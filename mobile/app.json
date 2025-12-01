@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "EmpowerHer",
+    "slug": "empowerher",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#9466FF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.empowerher.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#9466FF"
+      },
+      "package": "com.empowerher.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "@react-native-firebase/crashlytics",
+        {
+          "android": true,
+          "ios": true
+        }
+      ],
+      [
+        "@react-native-firebase/perf",
+        {
+          "android": true,
+          "ios": true
+        }
+      ]
+    ],
+    "scheme": "empowerher"
+  }
+}
+

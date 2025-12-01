@@ -12,6 +12,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { predictPCOS, PredictionRequest, PredictionResult } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { getPersonalizedRecommendations } from '@/app/actions';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 
 // Simplified schema for demonstration
 const assessmentSchema = z.object({
@@ -153,7 +159,10 @@ const steps = [
 
 export default function AssessmentPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<AssessmentFormValues>({
     resolver: zodResolver(assessmentSchema),
@@ -168,14 +177,164 @@ export default function AssessmentPage() {
     },
   });
 
+  // Generate recommendations in the background (non-blocking)
+  const generateRecommendationsInBackground = async (assessmentId: string, result: PredictionResult, input: any) => {
+    // Run in background - don't block the UI
+    (async () => {
+      try {
+        // Quick check if recommendations already exist
+        const assessmentDoc = await getDoc(doc(db, 'assessments', assessmentId));
+        if (assessmentDoc.exists() && assessmentDoc.data().recommendations) {
+          return; // Already generated
+        }
+        
+        // Generate recommendations (fallback is instant, AI might take time)
+        const riskLabel = result.label || 'No Risk';
+        const age = input?.age || 25;
+        const height = input?.height || 165;
+        const weight = input?.weight || 65;
+        const medicalHistory = input?.medicalHistory || 'Not provided';
+        
+        const lifestyleParts = [];
+        if (input?.cycleRegularity) lifestyleParts.push(`Cycle: ${input.cycleRegularity}`);
+        if (input?.exerciseFrequency) lifestyleParts.push(`Exercise: ${input.exerciseFrequency}`);
+        if (input?.diet) lifestyleParts.push(`Diet: ${input.diet}`);
+        const lifestyle = lifestyleParts.length > 0 ? lifestyleParts.join(', ') : 'Not provided';
+        
+        const recommendations = await getPersonalizedRecommendations({
+          pcosRiskAssessmentResult: riskLabel,
+          age: Number(age),
+          height: Number(height),
+          weight: Number(weight),
+          medicalHistory: medicalHistory,
+          lifestyle: lifestyle,
+        });
+        
+        // Store recommendations in Firestore
+        await updateDoc(doc(db, 'assessments', assessmentId), {
+          recommendations: recommendations,
+          recommendationsGeneratedAt: new Date(),
+        });
+      } catch (e) {
+        console.error('Background recommendation generation failed:', e);
+        // Silent fail - recommendations can be generated when user views the page
+      }
+    })();
+  };
+
   async function processForm(data: AssessmentFormValues) {
-    // In a real app, this would call the /api/predict function
-    // and save the assessment to the database.
-    console.log('Assessment Data:', data);
-    
-    // For demo, we'll create a query string and navigate to results.
-    const queryString = new URLSearchParams(data as any).toString();
-    router.push(`/assessment/result?${queryString}`);
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to complete the assessment.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Ensure auth token is ready before calling
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Get auth token to ensure it's fresh
+      await user.getIdToken();
+
+      // Calculate BMI
+      const bmi = data.weight / Math.pow(data.height / 100, 2);
+
+      // Prepare request data matching the API interface
+      const requestData: PredictionRequest = {
+        age: Number(data.age),
+        weight: Number(data.weight),
+        height: Number(data.height),
+        bmi: parseFloat(bmi.toFixed(2)),
+        cycleRegularity: data.cycleRegularity,
+        exerciseFrequency: data.exerciseFrequency,
+        diet: data.diet,
+        medicalHistory: data.medicalHistory || undefined,
+      };
+      
+      // Call Firebase Function (has built-in 10-second timeout with instant mock fallback)
+      const result = await predictPCOS(requestData);
+      
+      // Validate result structure
+      if (!result?.data) {
+        throw new Error('Invalid response from prediction service');
+      }
+      
+      // Get the assessment ID from Firestore (assessment was saved by the Firebase Function)
+      let assessmentId: string | null = null;
+      if (user) {
+        try {
+          const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore');
+          const { db } = await import('@/lib/firebase');
+          const q = query(
+            collection(db, "assessments"),
+            where("userId", "==", user.uid),
+            orderBy("createdAt", "desc"),
+            limit(1)
+          );
+          const snapshot = await getDocs(q);
+          if (!snapshot.empty) {
+            assessmentId = snapshot.docs[0].id;
+            
+            // Generate recommendations immediately in the background (non-blocking)
+            // This ensures they're ready when user views the recommendations page
+            generateRecommendationsInBackground(assessmentId, result.data, data);
+          }
+        } catch (e) {
+          console.warn('Failed to get assessment ID:', e);
+          // Continue without ID - recommendations can be generated later
+        }
+      }
+      
+      // Store result in sessionStorage for the result page
+      // Clear any old cached results first
+      sessionStorage.removeItem('lastAssessmentResult');
+      sessionStorage.setItem('lastAssessmentResult', JSON.stringify({
+        ...result.data,
+        input: data,
+        assessmentId: assessmentId, // Store the assessment ID
+        timestamp: Date.now(), // Add timestamp to track when result was generated
+      }));
+
+      // Navigate to result page immediately (don't wait for recommendations)
+      router.push('/assessment/result');
+    } catch (error: any) {
+      // Extract error information safely
+      let errorMessage = 'Failed to process assessment. Please try again.';
+      const errorCode = error?.code || 'unknown';
+      
+      // Handle specific Firebase Function error codes
+      if (errorCode === 'functions/internal') {
+        errorMessage = 'Internal server error. Please try again in a moment. If the problem persists, check if Firebase Functions are properly deployed.';
+      } else if (errorCode === 'functions/unavailable') {
+        errorMessage = 'Service temporarily unavailable. Please check your internet connection and try again.';
+      } else if (errorCode === 'functions/deadline-exceeded' || errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (errorCode === 'functions/permission-denied' || errorCode === 'permission-denied') {
+        errorMessage = 'Permission denied. Please make sure you are logged in.';
+      } else if (errorCode === 'functions/unauthenticated' || errorCode === 'unauthenticated') {
+        errorMessage = 'Authentication required. Please log in and try again.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   const nextStep = async () => {
@@ -222,8 +381,12 @@ export default function AssessmentPage() {
             <Button variant="outline" onClick={prevStep} disabled={currentStep === 0}>
               Back
             </Button>
-            <Button onClick={nextStep}>
-              {currentStep === steps.length - 1 ? 'See Results' : 'Next'}
+            <Button onClick={nextStep} disabled={loading}>
+              {loading 
+                ? 'Processing...' 
+                : currentStep === steps.length - 1 
+                  ? 'See Results' 
+                  : 'Next'}
             </Button>
         </CardFooter>
       </Card>

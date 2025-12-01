@@ -10,7 +10,7 @@ export function Footer() {
             <Logo />
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Empower AI. All rights reserved.
+            © {new Date().getFullYear()} EmpowerHer. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">

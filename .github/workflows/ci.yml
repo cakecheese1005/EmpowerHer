@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feature/**]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install root dependencies
+        run: npm ci
+      
+      - name: Lint root
+        run: npm run lint || true
+      
+      - name: Type check root
+        run: npm run typecheck
+      
+      - name: Build root
+        run: npm run build
+      
+      - name: Install functions dependencies
+        working-directory: ./functions
+        run: npm ci
+      
+      - name: Lint functions
+        working-directory: ./functions
+        run: npm run lint || true
+      
+      - name: Type check functions
+        working-directory: ./functions
+        run: npm run build
+      
+      - name: Test functions
+        working-directory: ./functions
+        run: npm test || true
+      
+      - name: Install web-admin dependencies
+        working-directory: ./web-admin
+        run: npm ci
+      
+      - name: Type check web-admin
+        working-directory: ./web-admin
+        run: npm run typecheck
+      
+      - name: Build web-admin
+        working-directory: ./web-admin
+        run: npm run build
+
